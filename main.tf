@@ -11,6 +11,7 @@ provider "aws" {
   region = "ap-south-1"
 }
 
+# Get latest Ubuntu 24.04 AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -25,12 +26,19 @@ data "aws_ami" "ubuntu" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
 }
 
+# Get default VPC
 data "aws_vpc" "default" {
   default = true
 }
 
+# Get subnets from default VPC
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -38,9 +46,13 @@ data "aws_subnets" "default" {
   }
 }
 
+# Create EC2 instance
 resource "aws_instance" "dev_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
+
+  # AWS Key Pair name
+  key_name = "python"
 
   subnet_id = data.aws_subnets.default.ids[0]
 
